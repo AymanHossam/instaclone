@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { View, Button, StyleSheet, Image, Text, TouchableOpacity, FlatList } from "react-native";
+import { View, Button, StyleSheet, Image, Text, TouchableOpacity, FlatList, Dimensions } from "react-native";
 import { useSelector, useDispatch } from "react-redux";
 import * as usersActions from "../store/actions/usersActions";
 import * as ImagePicker from 'expo-image-picker';
@@ -99,6 +99,8 @@ const Profile = (props) => {
     )
 }
 
+var { height, width } = Dimensions.get('window');
+
 const styles = StyleSheet.create({
     container: {
         backgroundColor: 'white',
@@ -145,7 +147,7 @@ const styles = StyleSheet.create({
         borderWidth: 0.5,
         borderColor: 'grey',
         height: 130,
-        width: 136,
+        width: (width - 3.5) / 3,
         margin: 0.5
     },
     text: {
