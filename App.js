@@ -7,7 +7,6 @@ import ReduxThunk from 'redux-thunk';
 import { createLogger } from "redux-logger";
 
 import Nav from './src/Nav';
-import apiReducer from './src/store/reducers/apiReducer';
 import feedReducer from './src/store/reducers/feedReducer';
 import authReducer from './src/store/reducers/authReducer';
 import profileReducer from './src/store/reducers/profileReducer';
@@ -15,7 +14,6 @@ import usersReducer from './src/store/reducers/usersReducer';
 
 
 const reducers = combineReducers({
-  api: apiReducer,
   feed: feedReducer,
   auth: authReducer,
   profile: profileReducer,
