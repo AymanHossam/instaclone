@@ -1,6 +1,7 @@
 # instaclone
 This application does main instagram functions using react native and firebase
 
+![Demo](https://media.giphy.com/media/j0S4iHmcohE1jRIBwV/giphy.gif)
 
 # Description
 With this app you can:
