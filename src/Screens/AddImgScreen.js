@@ -15,7 +15,7 @@ const AddImgScreen = (props) => {
     const onSubmitHandler = useCallback(() => {
         dispatch(feedActions.addPost(text, img))
         props.navigation.navigate('Feed')
-    }, [dispatch])
+    }, [dispatch, text, img])
 
     useEffect(() => {
         props.navigation.setParams({ action: onSubmitHandler })

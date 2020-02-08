@@ -1,4 +1,4 @@
-import { GET_USER, FOLLOW_USER, GET_USER_POSTS, GET_ALL_USERS, UPDATE_INFO } from "../actions/usersActions"
+import { GET_USER, FOLLOW_USER, GET_USER_POSTS, GET_ALL_USERS, UPDATE_INFO, UPDATE_PROFILE_PIC } from "../actions/usersActions"
 import users from "../../dummy-data/users"
 import User from "../../models/User"
 import Post from "../../models/Post"
@@ -36,10 +36,17 @@ export default usersReducer = (state = initialValues, action) => {
                 }
             }
         case UPDATE_INFO:
-            const user = state.users[action.mainUserId]
+            let user = state.users[action.mainUserId]
             user.picture = action.imageUrl
             user.username = action.username
             user.bio = action.bio
+            return {
+                ...state,
+                users: { ...state.users, [action.mainUserId]: user }
+            }
+        case UPDATE_PROFILE_PIC:
+            user = state.users[action.mainUserId]
+            user.picture = action.imageUrl
             return {
                 ...state,
                 users: { ...state.users, [action.mainUserId]: user }

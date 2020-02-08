@@ -15,10 +15,6 @@ const ViewPostScreen = (props) => {
     const id = props.navigation.getParam('id')
     const ownerId = props.navigation.getParam('ownerId')
     const selectedPost = useSelector(state => state.feed.posts[ownerId][id])
-    const text = selectedPost.text
-    const img = selectedPost.img
-    const likesCount = selectedPost.likesCount
-    const likes = selectedPost.likes
 
     const [isDialogVisible, setIsDialogVisible] = useState(false)
 
@@ -28,6 +24,10 @@ const ViewPostScreen = (props) => {
     }
     const onLikesPressHandler = likes => {
         props.navigation.navigate('viewFollow', { list: likes })
+    }
+
+    if (!selectedPost) {
+        return <View />
     }
 
     return (
@@ -49,7 +49,16 @@ const ViewPostScreen = (props) => {
 
                 </DialogContent>
             </Dialog>
-            <Post id={ id } ownerId={ ownerId } txt={ text } img={ img } likes={ likes } likesCount={ likesCount } onDialog={ setIsDialogVisible } onLikesPress={ onLikesPressHandler } />
+            <Post
+                id={ id }
+                ownerId={ ownerId }
+                txt={ selectedPost.text }
+                img={ selectedPost.img }
+                likes={ selectedPost.likes }
+                likesCount={ selectedPost.likesCount }
+                date={ selectedPost.date }
+                onDialog={ setIsDialogVisible }
+                onLikesPress={ onLikesPressHandler } />
         </ScrollView>
     )
 }

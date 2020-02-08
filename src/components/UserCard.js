@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
-import { View, Button, StyleSheet, Text, Image } from "react-native";
+import { View, StyleSheet, Text, Image } from "react-native";
+import { Button } from 'react-native-elements'
 import { useSelector, useDispatch } from "react-redux";
 import * as usersActions from "../store/actions/usersActions";
 
@@ -33,9 +34,9 @@ const UserCard = (props) => {
                     </View>
                     <Text>{ users[props.id].username }</Text>
                 </View>
-                { !isMainUser && <View style={ styles.button }>
-                    <Button title={ isFollowing ? 'Following' : 'Follow' } onPress={ () => dispatch(usersActions.followUser(props.id)) } />
-                </View> }
+                { !isMainUser && (isFollowing ? <Button title={ 'Following' } buttonStyle={ styles.button } titleStyle={ { color: 'black', fontSize: 14 } } type='outline' onPress={ () => dispatch(usersActions.followUser(props.id)) } /> :
+                    <Button title={ 'Follow' } buttonStyle={ styles.button } titleStyle={ { fontSize: 14 } } onPress={ () => dispatch(usersActions.followUser(props.id)) } />)
+                }
             </View>
         </View>
     )
@@ -75,8 +76,9 @@ const styles = StyleSheet.create({
         width: '100%'
     },
     button: {
-        borderRadius: 10,
-        overflow: 'hidden'
+        height: 27,
+        width: 110,
+        borderColor: 'grey'
     }
 })
 

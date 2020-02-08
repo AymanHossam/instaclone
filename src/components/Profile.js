@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react'
-import { View, Button, StyleSheet, Image, Text, TouchableOpacity, FlatList, Dimensions } from "react-native";
+import { View, StyleSheet, Image, Text, TouchableOpacity, FlatList, Dimensions } from "react-native";
 import { useSelector, useDispatch } from "react-redux";
 import * as usersActions from "../store/actions/usersActions";
 import * as ImagePicker from 'expo-image-picker';
+import { Button } from 'react-native-elements';
 
 
 
@@ -86,9 +87,11 @@ const Profile = (props) => {
             { !isMainUser ? <View style={ styles.follow } >
                 <Button title={ isFollowed ? 'Unfollow' : 'Follow' } onPress={ () => dispatch(usersActions.followUser(props.id)) } />
             </View> :
-                <View style={ styles.follow } >
-                    <Button title={ 'Edit profile' } onPress={ () => { props.navigation.navigate('editProfile') } } />
-                </View>
+                <Button title="Edit Profile"
+                    type="outline"
+                    buttonStyle={ styles.editButton }
+                    titleStyle={ styles.editButtonText }
+                    onPress={ () => { props.navigation.navigate('editProfile') } } />
             }
             <FlatList data={ selectedUserPosts } keyExtractor={ item => item } numColumns='3' renderItem={ ({ item }) => {
                 return <TouchableOpacity style={ styles.postContainer } onPress={ () => { props.navigation.navigate('viewPost', { id: item.id, ownerId: item.ownerId }) } }>
@@ -142,6 +145,16 @@ const styles = StyleSheet.create({
         marginBottom: 10,
         borderRadius: 20,
         overflow: 'hidden'
+    },
+    editButton: {
+        height: 30,
+        marginVertical: 15,
+        marginHorizontal: 10,
+        borderColor: 'grey'
+    },
+    editButtonText: {
+        color: 'black',
+        fontSize: 14
     },
     postContainer: {
         borderWidth: 0.5,

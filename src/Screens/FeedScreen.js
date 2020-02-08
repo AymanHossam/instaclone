@@ -34,7 +34,8 @@ const FeedScreen = (props) => {
                     text: state.feed.posts[key][post].text,
                     img: state.feed.posts[key][post].img,
                     likes: state.feed.posts[key][post].likes,
-                    likesCount: state.feed.posts[key][post].likesCount
+                    likesCount: state.feed.posts[key][post].likesCount,
+                    date: state.feed.posts[key][post].date
                 })
         }
         return (convertedPosts.sort((a, b) =>
@@ -88,6 +89,7 @@ const FeedScreen = (props) => {
                                 txt={ item.text }
                                 img={ item.img }
                                 likesCount={ item.likesCount }
+                                date={ item.date }
                                 onProfilePress={ onProfilePressHandler }
                                 onLikesPress={ onLikesPressHandler }
                                 onDialog={ setIsDialogVisible } />

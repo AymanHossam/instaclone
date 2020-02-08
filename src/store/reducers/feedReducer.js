@@ -20,7 +20,7 @@ export default feedReducer = (state = initialValues, action) => {
             }
         case ADD_POST:
             const post = action.postData
-            const newPost = new Post(post.id, post.ownerId, post.text, post.imageUrl, post.likes, post.likesCount)
+            const newPost = new Post(post.id, post.ownerId, post.text, post.imageUrl, post.likes, post.likesCount, post.date)
             return {
                 ...state,
                 posts: {
@@ -33,7 +33,7 @@ export default feedReducer = (state = initialValues, action) => {
             let likedPost = state.posts[action.data.ownerId][action.data.postId]
 
             let updatedLikes = likedPost.likes.concat(action.data.userId)
-            let updatedPost = new Post(likedPost.id, likedPost.ownerId, likedPost.text, likedPost.img, updatedLikes, likedPost.likesCount + 1)
+            let updatedPost = new Post(likedPost.id, likedPost.ownerId, likedPost.text, likedPost.img, updatedLikes, likedPost.likesCount + 1, likedPost.date)
             return {
                 ...state,
                 posts: {
@@ -45,7 +45,7 @@ export default feedReducer = (state = initialValues, action) => {
             likedPost = state.posts[action.data.ownerId][action.data.postId]
             updatedLikes = likedPost.likes.filter(id => id !== action.data.userId)
             console.log(updatedLikes)
-            updatedPost = new Post(likedPost.id, likedPost.ownerId, likedPost.text, likedPost.img, updatedLikes, likedPost.likesCount - 1)
+            updatedPost = new Post(likedPost.id, likedPost.ownerId, likedPost.text, likedPost.img, updatedLikes, likedPost.likesCount - 1, likedPost.date)
             return {
                 ...state,
                 posts: {

@@ -5,6 +5,7 @@ export const FOLLOW_USER = 'follow_user'
 export const GET_USER = 'get_user'
 export const GET_ALL_USERS = 'get_all_users'
 export const UPDATE_INFO = 'update_info'
+export const UPDATE_PROFILE_PIC = 'update_profile_pic'
 
 
 
@@ -57,6 +58,7 @@ export const updateProfilePic = (imageUrl) => {
                     imageUrl
                 )
             })
+        dispatch({ type: UPDATE_PROFILE_PIC, imageUrl, mainUserId })
     }
 }
 export const updateUserInfo = (imageUrl, username, bio) => {

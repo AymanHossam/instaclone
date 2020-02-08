@@ -1,6 +1,7 @@
-import React, { useState, useReducer, useCallback } from 'react'
-import { View, Button, StyleSheet, Image, Text, TouchableOpacity } from "react-native";
+import React, { useState, useReducer, useCallback, useEffect } from 'react'
+import { View, Button, StyleSheet, Image, Text, TouchableOpacity, KeyboardAvoidingView, ScrollView } from "react-native";
 import { useSelector, useDispatch } from "react-redux";
+import { AntDesign } from "@expo/vector-icons";
 
 import * as usersActions from "../store/actions/usersActions";
 
@@ -41,7 +42,6 @@ const EditProfileScreen = (props) => {
 
         if (!result.cancelled) {
             setProfilePic(result.uri);
-            //dispatch(usersActions.updateProfilePic(result.uri))
         }
     };
 
@@ -51,6 +51,18 @@ const EditProfileScreen = (props) => {
             bio: mainUser.bio,
         }
     });
+
+    const updateInfoHandler = useCallback(
+        () => {
+            dispatch(usersActions.updateUserInfo(profilePic, formState.inputValues.username, formState.inputValues.bio))
+            props.navigation.goBack()
+        },
+        [profilePic, formState.inputValues.username, formState.inputValues.bio],
+    )
+
+    useEffect(() => {
+        props.navigation.setParams({ action: updateInfoHandler })
+    }, [dispatch, updateInfoHandler])
 
     const inputChangeHandler = useCallback(
         (inputIdentifier, inputValue, inputValidity) => {
@@ -66,45 +78,70 @@ const EditProfileScreen = (props) => {
 
 
     return (
-        <View style={ styles.container }>
-            <View style={ styles.imagePicker }>
-                <TouchableOpacity onPress={ _pickImage } style={ styles.imageContainer }>
-                    { profilePic && <Image source={ { uri: profilePic } } style={ styles.image } /> }
+        <KeyboardAvoidingView
+            behavior="padding"
+            keyboardVerticalOffset={ 150 }
+            style={ { flex: 1, backgroundColor: 'white' } }
+        >
+            <View style={ styles.container }>
+                <ScrollView>
+                    <View style={ styles.imagePicker }>
+                        <TouchableOpacity onPress={ _pickImage } style={ styles.imageContainer }>
+                            { profilePic && <Image source={ { uri: profilePic } } style={ styles.image } /> }
 
-                </TouchableOpacity>
-                <Text style={ styles.cyanText }>Change Profile Photo</Text>
+                        </TouchableOpacity>
+                        <Text style={ styles.cyanText }>Change Profile Photo</Text>
+                    </View>
+                    <View style={ styles.input }>
+                        <Input
+                            id="username"
+                            placeholder="Username"
+                            label="Username"
+                            required
+                            onInputChange={ inputChangeHandler }
+                            initialValue={ mainUser.username } />
+                        <Input
+                            id="bio"
+                            placeholder="Bio"
+                            label="Bio"
+                            onInputChange={ inputChangeHandler }
+                            initialValue={ mainUser.bio } />
+                    </View>
+                </ScrollView>
             </View>
-            <View style={ styles.input }>
-                <Input
-                    id="username"
-                    placeholder="Username"
-                    label="Username"
-                    required
-                    onInputChange={ inputChangeHandler }
-                    initialValue={ mainUser.username } />
-                <Input
-                    id="bio"
-                    placeholder="Bio"
-                    label="Bio"
-                    onInputChange={ inputChangeHandler }
-                    initialValue={ mainUser.bio } />
-            </View>
-            <Button title='Update' onPress={ () => { dispatch(usersActions.updateUserInfo(profilePic, formState.inputValues.username, formState.inputValues.bio)) } } />
-        </View>
+        </KeyboardAvoidingView>
     )
 
 }
 
 EditProfileScreen.navigationOptions = props => {
+    const update = props.navigation.getParam('action')
     return {
-        headerTitle: 'Edit your info'
+        headerTitle: 'Edit Profile',
+        headerRight: () => {
+            return <TouchableOpacity style={ styles.headerButton } onPress={ update }>
+                <AntDesign
+                    name='check'
+                    size={ 26 }
+                    color='#2089DC'
+                />
+            </TouchableOpacity>
+        },
+        headerBackImage: () => {
+            return <AntDesign
+                name='close'
+                size={ 26 }
+                color='black'
+            />
+        },
+
     }
 }
 
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: 'white'
+        backgroundColor: 'white',
     },
     imagePicker: {
         alignItems: 'center'
@@ -123,11 +160,14 @@ const styles = StyleSheet.create({
         width: '100%'
     },
     cyanText: {
-        color: 'blue',
+        color: '#2089DC',
         fontSize: 18
     },
     input: {
         marginTop: 15,
+        marginHorizontal: 10
+    },
+    headerButton: {
         marginHorizontal: 10
     }
 })

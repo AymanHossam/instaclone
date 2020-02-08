@@ -26,7 +26,7 @@ export const fetchPosts = () => {
         for (let key in resData) {
             for (let post in resData[key]) {
                 const likes = resData[key][post].likes ? resData[key][post].likes : []
-                const addedPost = new Post(post, resData[key][post].ownerId, resData[key][post].text, resData[key][post].imageUrl, likes, resData[key][post].likesCount)
+                const addedPost = new Post(post, resData[key][post].ownerId, resData[key][post].text, resData[key][post].imageUrl, likes, resData[key][post].likesCount, resData[key][post].date)
                 fetchedPosts = {
                     ...fetchedPosts,
                     [addedPost.ownerId]: { ...fetchedPosts[addedPost.ownerId], [post]: addedPost }
@@ -42,6 +42,7 @@ export const addPost = (txt, img) => {
     return async (dispatch, getState) => {
         const userId = getState().auth.userId
         const token = getState().auth.token
+        const date = new Date()
         const response = await fetch(`https://instaclone-c4517.firebaseio.com//posts/${userId}.json?auth=${token}`,
             {
                 method: 'POST',
@@ -52,7 +53,8 @@ export const addPost = (txt, img) => {
                         text: txt,
                         imageUrl: img,
                         likes: [],
-                        likesCount: 0
+                        likesCount: 0,
+                        date
                     }
                 )
             })
@@ -64,7 +66,8 @@ export const addPost = (txt, img) => {
                 text: txt,
                 imageUrl: img,
                 likes: [],
-                likesCount: 0
+                likesCount: 0,
+                date
             }
         })
     }
@@ -144,13 +147,15 @@ export const deletePost = (postId, callback) => {
     return async (dispatch, getState) => {
         const userId = getState().auth.userId
         const token = getState().auth.token
-        if (callback) {
-            callback()
-        }
+
+
         await fetch(`https://instaclone-c4517.firebaseio.com//posts/${userId}/${postId}.json?auth=${token}`,
             {
                 method: 'DELETE',
             })
         dispatch({ type: DELETE_POST, postId, userId })
+        if (callback) {
+            callback()
+        }
     }
 }
