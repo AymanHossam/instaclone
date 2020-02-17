@@ -1,9 +1,10 @@
-import { ADD_POST, LIKE_POST, GET_POSTS, FETCH_POSTS, DELETE_POST, UNLIKE_POST } from "../actions/feedActions"
+import { ADD_POST, UPLOAD_PROGRESS, GET_POSTS, FETCH_POSTS, DELETE_POST, TOGGLE_LIKE } from "../actions/feedActions"
 import Post from "../../models/Post"
 
 
 const initialValues = {
-    posts: {}
+    posts: {},
+    uploadProgress: 0
 }
 
 export default feedReducer = (state = initialValues, action) => {
@@ -28,35 +29,23 @@ export default feedReducer = (state = initialValues, action) => {
                     [post.ownerId]: { ...state.posts[post.ownerId], [post.id]: newPost }
                 }
             }
-
-        case LIKE_POST:
-            let likedPost = state.posts[action.data.ownerId][action.data.postId]
-
-            let updatedLikes = likedPost.likes.concat(action.data.userId)
-            let updatedPost = new Post(likedPost.id, likedPost.ownerId, likedPost.text, likedPost.img, updatedLikes, likedPost.likesCount + 1, likedPost.date)
+        case UPLOAD_PROGRESS:
             return {
                 ...state,
-                posts: {
-                    ...state.posts,
-                    [action.data.ownerId]: { ...state.posts[updatedPost.ownerId], [updatedPost.id]: updatedPost }
-                }
+                uploadProgress: action.progress
             }
-        case UNLIKE_POST:
-            likedPost = state.posts[action.data.ownerId][action.data.postId]
-            updatedLikes = likedPost.likes.filter(id => id !== action.data.userId)
-            console.log(updatedLikes)
-            updatedPost = new Post(likedPost.id, likedPost.ownerId, likedPost.text, likedPost.img, updatedLikes, likedPost.likesCount - 1, likedPost.date)
+        case TOGGLE_LIKE:
+
             return {
                 ...state,
                 posts: {
                     ...state.posts,
-                    [action.data.ownerId]: { ...state.posts[updatedPost.ownerId], [updatedPost.id]: updatedPost }
+                    [action.post.ownerId]: { ...state.posts[action.post.ownerId], [action.postId]: action.post }
                 }
             }
 
         case DELETE_POST:
             const updatedPosts = { ...state.posts }
-            console.log(updatedPosts === state.posts)
             delete updatedPosts[action.userId][action.postId]
             return {
                 ...state,

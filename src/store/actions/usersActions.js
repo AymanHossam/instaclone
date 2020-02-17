@@ -1,3 +1,4 @@
+import firebase from '../../api/firebase'
 import User from "../../models/User"
 
 export const GET_USER_POSTS = 'get_user_posts'
@@ -8,95 +9,98 @@ export const UPDATE_INFO = 'update_info'
 export const UPDATE_PROFILE_PIC = 'update_profile_pic'
 
 
-
 export const getUser = (id) => {
-    return (dispatch, getState) => {
+    return (dispatch) => {
         dispatch({ type: GET_USER, id })
     }
 }
 export const getUserPosts = (userId) => {
-    return async (dispatch, getState) => {
-        const response = await fetch(`https://instaclone-c4517.firebaseio.com//posts/${userId}.json`)
-        const resData = await response.json()
-        dispatch({ type: GET_USER_POSTS, userId, posts: resData })
+    return async (dispatch) => {
+        let userPosts
+        await firebase.database().ref('posts/' + userId).once('value', snapshot => {
+            userPosts = snapshot.val() || {}
+        })
+
+        dispatch({ type: GET_USER_POSTS, userId, posts: userPosts })
     }
 }
-export const getAllUsers = (id) => {
-    return async (dispatch, getState) => {
-        const response = await fetch(`https://instaclone-c4517.firebaseio.com//users.json`)
-        const resData = await response.json()
+export const getAllUsers = () => {
+    return async (dispatch) => {
+        let users
+        await firebase.database().ref('users').once('value', snapshot => {
+            users = snapshot.val() || {}
+        })
         let allUsers = {}
-        for (let key in resData) {
-            const imageUrl = resData[key].imageUrl ? resData[key].imageUrl : null
-            const bio = resData[key].bio ? resData[key].bio : null
-            const postsCount = resData[key].postsCount ? resData[key].postsCount : 0
-            const followers = resData[key].followers ? resData[key].followers : []
-            const following = resData[key].following ? resData[key].following : []
+        for (let key in users) {
             const newUser = new User(
-                resData[key].id,
-                resData[key].email,
-                resData[key].username,
-                imageUrl,
-                bio,
-                postsCount,
-                followers,
-                following)
+                users[key].id,
+                users[key].email,
+                users[key].username || 'new user',
+                users[key].imageUrl || null,
+                users[key].bio || null,
+                users[key].postsCount || 0,
+                users[key].followers || [],
+                users[key].following || [])
             allUsers = { ...allUsers, [newUser.id]: newUser }
         }
         await dispatch({ type: GET_ALL_USERS, users: allUsers })
     }
 }
-export const updateProfilePic = (imageUrl) => {
+const uriToBlob = (uri) => {
+    return new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.onload = function () {
+            // return the blob
+            resolve(xhr.response);
+        };
+
+        xhr.onerror = function () {
+            // something went wrong
+            reject(new Error('uriToBlob failed'));
+        };
+        // this helps us get a blob
+        xhr.responseType = 'blob';
+        xhr.open('GET', uri, true);
+
+        xhr.send(null);
+    });
+}
+
+export const updateProfilePic = (img) => {
     return async (dispatch, getState) => {
         const mainUserId = getState().auth.userId
-        const token = getState().auth.token
-        const response = await fetch(`https://instaclone-c4517.firebaseio.com//users/${mainUserId}/imageUrl.json?auth=${token}`,
-            {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(
-                    imageUrl
-                )
+        let uploadTask = firebase.storage().ref(`users/${mainUserId}.jpg`).put(await uriToBlob(img))
+        uploadTask.on(
+            firebase.storage.TaskEvent.STATE_CHANGED,
+            async snapshot => {
+                console.log(snapshot.state)
+
+            },
+            null,
+            () => {
+                uploadTask.snapshot.ref.getDownloadURL().then(imageUrl => {
+
+                    let updates = {}
+                    updates[`users/${mainUserId}/imageUrl`] = imageUrl
+                    firebase.database().ref().update(updates)
+
+                    dispatch({ type: UPDATE_PROFILE_PIC, imageUrl, mainUserId })
+                });
             })
-        dispatch({ type: UPDATE_PROFILE_PIC, imageUrl, mainUserId })
     }
 }
 export const updateUserInfo = (imageUrl, username, bio) => {
     return async (dispatch, getState) => {
         const mainUserId = getState().auth.userId
-        const token = getState().auth.token
         const mainUser = getState().users.users[mainUserId]
-        let response
-        if (mainUser.picture !== imageUrl) {
-            response = await fetch(`https://instaclone-c4517.firebaseio.com//users/${mainUserId}/imageUrl.json?auth=${token}`,
-                {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(
-                        imageUrl
-                    )
-                })
-        }
-        if (mainUser.username !== username) {
-            response = await fetch(`https://instaclone-c4517.firebaseio.com//users/${mainUserId}/username.json?auth=${token}`,
-                {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(
-                        username
-                    )
-                })
-        }
-        if (mainUser.bio !== bio) {
-            response = await fetch(`https://instaclone-c4517.firebaseio.com//users/${mainUserId}/bio.json?auth=${token}`,
-                {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(
-                        bio
-                    )
-                })
-        }
+
+        let updates = {}
+
+        mainUser.picture !== imageUrl && (updates[`users/${mainUserId}/imageUrl`] = imageUrl)
+        mainUser.username !== username && (updates[`users/${mainUserId}/username`] = username)
+        mainUser.bio !== bio && (updates[`users/${mainUserId}/bio`] = bio)
+
+        firebase.database().ref().update(updates)
         dispatch({ type: UPDATE_INFO, mainUserId, imageUrl, username, bio })
     }
 }
@@ -104,45 +108,51 @@ export const updateUserInfo = (imageUrl, username, bio) => {
 export const followUser = (selectedUserId) => {
     return async (dispatch, getState) => {
         const mainUserId = getState().auth.userId
-        const token = getState().auth.token
 
         dispatch({ type: FOLLOW_USER, id: selectedUserId, mainUserId })
+        await firebase.database().ref('users').transaction(users => {
+            if (users) {
+                if (users[mainUserId] && users[selectedUserId]) {
+                    if (users[mainUserId].following && users[mainUserId].following.some(id => id === selectedUserId)) {
+                        users[mainUserId].following = users[mainUserId].following.filter(id => id !== selectedUserId)
+                        users[selectedUserId].followers = users[selectedUserId].followers.filter(id => id !== mainUserId)
+                    } else {
+                        if (!users[mainUserId].following) {
+                            users[mainUserId].following = []
+                        }
+                        if (!users[selectedUserId].followers) {
+                            users[selectedUserId].followers = []
+                        }
+                        users[mainUserId].following = users[mainUserId].following.concat(selectedUserId)
+                        users[selectedUserId].followers = users[selectedUserId].followers.concat(mainUserId)
+                    }
+                }
+            }
+            return users
+        })
 
-        let response = await fetch(`https://instaclone-c4517.firebaseio.com//users/${selectedUserId}/followers.json`)
-        let resData = await response.json()
-        const selectedUserFollowers = resData ? resData : []
+        // let selectedUserFollowers
+        // let mainUserFollowing
+        // await firebase.database().ref(`users/${selectedUserId}/followers`).once('value', snapshot => {
+        //     selectedUserFollowers = snapshot.val() || []
+        // })
+        // await firebase.database().ref(`users/${mainUserId}/following`).once('value', snapshot => {
+        //     mainUserFollowing = snapshot.val() || []
+        // })
 
-        response = await fetch(`https://instaclone-c4517.firebaseio.com//users/${mainUserId}/following.json`)
-        resData = await response.json()
-        const mainUserFollowing = resData ? resData : []
+        // if (!selectedUserFollowers.some(id => id === mainUserId)) {
+        //     selectedUserFollowers = [...selectedUserFollowers, mainUserId]
+        //     mainUserFollowing = [...mainUserFollowing, selectedUserId]
+        // } else {
+        //     selectedUserFollowers = selectedUserFollowers.filter(id => id !== mainUserId)
+        //     mainUserFollowing = mainUserFollowing.filter(id => id !== selectedUserId)
+        // }
 
-        let updatedSelectedUserFollowers
-        let updatedMainUserFollowing
+        // let updates = {}
+        // updates[`users/${selectedUserId}/followers`] = selectedUserFollowers
+        // updates[`users/${mainUserId}/following`] = mainUserFollowing
 
-        if (!selectedUserFollowers.some(id => id === mainUserId)) {
-            updatedSelectedUserFollowers = [...selectedUserFollowers, mainUserId]
-            updatedMainUserFollowing = [...mainUserFollowing, selectedUserId]
-        } else {
-            updatedSelectedUserFollowers = selectedUserFollowers.filter(id => id !== mainUserId)
-            updatedMainUserFollowing = mainUserFollowing.filter(id => id !== selectedUserId)
-        }
+        // firebase.database().ref().update(updates)
 
-        await fetch(`https://instaclone-c4517.firebaseio.com//users/${selectedUserId}/followers.json?auth=${token}`,
-            {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(
-                    updatedSelectedUserFollowers
-                )
-            })
-
-        await fetch(`https://instaclone-c4517.firebaseio.com//users/${mainUserId}/following.json?auth=${token}`,
-            {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(
-                    updatedMainUserFollowing
-                )
-            })
     }
 }

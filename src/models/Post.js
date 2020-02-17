@@ -1,9 +1,9 @@
 export default class Post {
-    constructor(id, ownerId, text, img, likes, likesCount, date) {
+    constructor(id, ownerId, text, imageUrl, likes, likesCount, date) {
         this.id = id,
             this.ownerId = ownerId,
             this.text = text,
-            this.img = img,
+            this.imageUrl = imageUrl,
             this.likes = likes,
             this.likesCount = likesCount,
             this.date = date

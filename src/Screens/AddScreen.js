@@ -14,7 +14,7 @@ const AddScreen = (props) => {
             mediaTypes: ImagePicker.MediaTypeOptions.All,
             allowsEditing: true,
             aspect: [4, 3],
-            quality: 1
+            quality: 0.5
         });
 
         if (!result.cancelled) {
@@ -22,8 +22,6 @@ const AddScreen = (props) => {
             props.navigation.navigate('addImg', { img: result.uri })
         }
     };
-
-
 
     return (
         <View>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { View, StyleSheet, Image, Text, TouchableOpacity, FlatList, Dimensions } from "react-native";
 import { useSelector, useDispatch } from "react-redux";
 import * as usersActions from "../store/actions/usersActions";
@@ -23,7 +23,7 @@ const Profile = (props) => {
                 id: key,
                 ownerId: state.feed.posts[props.id][key].ownerId,
                 text: state.feed.posts[props.id][key].text,
-                img: state.feed.posts[props.id][key].img,
+                img: state.feed.posts[props.id][key].imageUrl,
                 likes: state.feed.posts[props.id][key].likes,
                 likesCount: state.feed.posts[props.id][key].likesCount
             })
@@ -32,7 +32,6 @@ const Profile = (props) => {
             a.id > b.id ? 1 : -1
         )
     })
-    // console.log(useSelector(state => state.users.users))
 
     const isFollowed = selectedUser.followers.some(id => id === mainUserId)
 
@@ -61,45 +60,68 @@ const Profile = (props) => {
         }
     };
 
-    return (
-        <View style={ styles.container }>
-            <View style={ styles.header }>
-                { isMainUser ? <TouchableOpacity onPress={ _pickImage } style={ styles.imageContainer }>
-                    { profilePic && <Image source={ { uri: profilePic } } style={ styles.image } /> }
-                </TouchableOpacity> :
-                    <View style={ styles.imageContainer }>
-                        { profilePic && <Image source={ { uri: profilePic } } style={ styles.image } /> }
-                    </View> }
-                <View style={ styles.headerItems }>
-                    <Text style={ styles.bold }>{ selectedUserPosts.length }</Text>
-                    <Text>Posts</Text>
-                </View>
-                <TouchableOpacity style={ styles.headerItems } onPress={ () => { props.onViewFollow(selectedUser.followers, 1) } }>
-                    <Text style={ styles.bold }>{ selectedUser.followers.length }</Text>
-                    <Text>Followers</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={ styles.headerItems } onPress={ () => { props.onViewFollow(selectedUser.following, 2) } }>
-                    <Text style={ styles.bold }>{ selectedUser.following.length }</Text>
-                    <Text>Following</Text>
-                </TouchableOpacity>
-            </View>
-            <Text style={ styles.bio }>{ selectedUser.bio }</Text>
-            { !isMainUser ? <View style={ styles.follow } >
-                <Button title={ isFollowed ? 'Unfollow' : 'Follow' } onPress={ () => dispatch(usersActions.followUser(props.id)) } />
-            </View> :
-                <Button title="Edit Profile"
-                    type="outline"
-                    buttonStyle={ styles.editButton }
-                    titleStyle={ styles.editButtonText }
-                    onPress={ () => { props.navigation.navigate('editProfile') } } />
-            }
-            <FlatList data={ selectedUserPosts } keyExtractor={ item => item } numColumns='3' renderItem={ ({ item }) => {
-                return <TouchableOpacity style={ styles.postContainer } onPress={ () => { props.navigation.navigate('viewPost', { id: item.id, ownerId: item.ownerId }) } }>
-                    <Image source={ { uri: item.img } } style={ styles.image } />
-                </TouchableOpacity>
-            } } />
-        </View>
+    const renderItem = useCallback(
+        ({ item }) => {
+            return <TouchableOpacity
+                style={ styles.postContainer }
+                onPress={ () => { props.navigation.navigate('viewPost', { id: item.id, ownerId: item.ownerId }) } }>
+                <Image source={ { uri: item.img } } style={ styles.image } />
+            </TouchableOpacity>
+        },
+        [selectedUserPosts],
     )
+
+    return (
+
+        <FlatList style={ styles.container }
+            ListHeaderComponent={ () => (
+                <View style={ styles.container }>
+                    <View style={ styles.header }>
+                        { isMainUser ? <TouchableOpacity onPress={ _pickImage } style={ styles.imageContainer }>
+                            { profilePic && <Image source={ { uri: profilePic } } style={ styles.image } /> }
+                        </TouchableOpacity> :
+                            <View style={ styles.imageContainer }>
+                                { profilePic && <Image source={ { uri: profilePic } } style={ styles.image } /> }
+                            </View> }
+                        <View style={ styles.headerItems }>
+                            <Text style={ styles.bold }>{ selectedUserPosts.length }</Text>
+                            <Text>Posts</Text>
+                        </View>
+                        <TouchableOpacity style={ styles.headerItems } onPress={ () => { props.onViewFollow(selectedUser.followers, 1) } }>
+                            <Text style={ styles.bold }>{ selectedUser.followers.length }</Text>
+                            <Text>Followers</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity style={ styles.headerItems } onPress={ () => { props.onViewFollow(selectedUser.following, 2) } }>
+                            <Text style={ styles.bold }>{ selectedUser.following.length }</Text>
+                            <Text>Following</Text>
+                        </TouchableOpacity>
+                    </View>
+                    <Text style={ styles.bio }>{ selectedUser.bio }</Text>
+                    { !isMainUser ? <View style={ styles.follow } >
+                        <Button title={ isFollowed ? 'Unfollow' : 'Follow' } onPress={ () => dispatch(usersActions.followUser(props.id)) } />
+                    </View> :
+                        <Button title="Edit Profile"
+                            type="outline"
+                            buttonStyle={ styles.editButton }
+                            titleStyle={ styles.editButtonText }
+                            onPress={ () => { props.navigation.navigate('editProfile') } } />
+                    }
+                </View>
+            ) }
+            ListEmptyComponent={ () => (
+                <View style={ styles.emptyList }>
+                    <Text style={ styles.emptyText }>You don't have any posts</Text>
+                </View>
+            ) }
+            data={ selectedUserPosts }
+            keyExtractor={ item => item }
+            numColumns='3'
+            renderItem={ renderItem } />
+
+
+    );
+
+
 }
 
 var { height, width } = Dimensions.get('window');
@@ -107,7 +129,6 @@ var { height, width } = Dimensions.get('window');
 const styles = StyleSheet.create({
     container: {
         backgroundColor: 'white',
-        flex: 1
     },
     header: {
         flexDirection: 'row',
@@ -115,7 +136,7 @@ const styles = StyleSheet.create({
     },
     imageContainer: {
         height: 100,
-        width: 100,
+        aspectRatio: 1,
         borderRadius: 100 / 2,
         borderWidth: 1,
         borderColor: 'grey',
@@ -138,7 +159,7 @@ const styles = StyleSheet.create({
         marginHorizontal: 15,
         fontSize: 15,
         fontWeight: 'bold',
-        marginBottom: 30
+        marginBottom: 10
     },
     follow: {
         marginHorizontal: 100,
@@ -148,7 +169,7 @@ const styles = StyleSheet.create({
     },
     editButton: {
         height: 30,
-        marginVertical: 15,
+        marginBottom: 15,
         marginHorizontal: 10,
         borderColor: 'grey'
     },
@@ -166,6 +187,13 @@ const styles = StyleSheet.create({
     text: {
         fontSize: 18,
         marginLeft: 10
+    },
+    emptyList: {
+        alignItems: 'center',
+        marginVertical: 100
+    },
+    emptyText: {
+        color: 'grey'
     }
 })
 

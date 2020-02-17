@@ -1,5 +1,5 @@
 import React, { useState, useReducer, useCallback, useEffect } from 'react'
-import { View, Button, StyleSheet, Image, Text, TouchableOpacity, KeyboardAvoidingView, ScrollView } from "react-native";
+import { View, StyleSheet, Image, Text, TouchableOpacity, KeyboardAvoidingView, ScrollView } from "react-native";
 import { useSelector, useDispatch } from "react-redux";
 import { AntDesign } from "@expo/vector-icons";
 
