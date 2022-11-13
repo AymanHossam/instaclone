@@ -6,7 +6,7 @@ jobs:
       - image: circleci/node:13.8.0
     steps: 
       - run: exit 1
-      - run: 
+      - run:
           name: Fail
           commmand:  echo "Hiii"
           when: on_fail
