@@ -10,7 +10,6 @@ jobs:
       - image: circleci/node:13.8.0
     steps: 
       - run: "return 1"
-    steps:
       - run: 
           name: "Fail"
           commmand:  "echo Hiii"
