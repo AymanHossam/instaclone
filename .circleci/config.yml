@@ -15,7 +15,7 @@ command:
 # See: https://circleci.com/docs/2.0/configuration-reference/#jobs
 jobs:
   print:
-    executor: print_pipeline_id
+    steps: print_pipeline_id
     
 # Invoke jobs via workflows
 # See: https://circleci.com/docs/2.0/configuration-reference/#workflows
