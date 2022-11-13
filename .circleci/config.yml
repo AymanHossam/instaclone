@@ -4,8 +4,6 @@ version: 2.1
 
 command: 
   print_pipeline_id:
-    docker:
-      - image: circleci/node:13.8.0
     steps:
       - run:
           name: "print-id"
@@ -15,6 +13,8 @@ command:
 # See: https://circleci.com/docs/2.0/configuration-reference/#jobs
 jobs:
   print:
+     docker:
+      - image: circleci/node:13.8.0
     steps: 
       - print_pipeline_id
     
