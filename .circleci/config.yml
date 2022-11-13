@@ -8,12 +8,10 @@ jobs:
       - run: exit 1
       - run:
           name: Fail
-          commmand:  echo "Hiii"
+          command:  echo "Hiii"
           when: on_fail
     
 workflows:
   fail-workflow:
     jobs:
       - failure
-          
-       
