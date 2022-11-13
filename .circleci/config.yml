@@ -11,7 +11,7 @@ jobs:
     steps:
       - run:
           name: "Save to file"
-          command: "echo 'text to output here' > output.txt"
+          command: "echo 'text to output here' > ~/output.txt"
       - persist_to_workspace:
           root: ~/
           paths:
